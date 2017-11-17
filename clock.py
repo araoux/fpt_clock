@@ -46,9 +46,9 @@ class App(QMainWindow):
         self.m.move(0, 0)
 
     def setEvent(self, i):
-        if i < len(self.states) - 1:
-            print('Stepping to next round state')
+        if i <= len(self.states) - 1:
             self.state = i
+            print('Stepping to state {}'.format(self.states[self.state]['name']))
 
             # Delete the canvas and create a new one
             self.vLayout.removeWidget(self.m)
@@ -59,12 +59,12 @@ class App(QMainWindow):
             # Change the label for the state name
             self.label.setText(self.states[self.state]['name'])
 
-            # Change the value of the control list
+            # Update the clock
             self.childWindow.list.setCurrentItem(self.childWindow.statesList[self.state])
 
             self.update()
         else:
-            raise ValueError('This state does not exist')
+            self.close()
 
     def keyPressEvent(self, e):
         if e.key() == Qt.Key_N:
@@ -76,11 +76,14 @@ class ClockControls(QDialog):
         self.title = 'FPT clock controls'
         self.state = 0
         self.setWindowTitle(self.title)
+        self.parent = parent
 
         self.list = QListWidget()
         self.vLayout=QVBoxLayout()
         self.vLayout.addWidget(self.list)
         self.setLayout(self.vLayout)
+
+        self.list.currentItemChanged.connect(self.changeState)
 
     def generateList(self, states):
         self.statesList = []
@@ -88,6 +91,10 @@ class ClockControls(QDialog):
             item = QListWidgetItem('{} (duration : {} s)'.format(state['name'], state['duration']))
             self.statesList.append(item)
             self.list.addItem(item)
+
+    def changeState(self, curr):
+        new_state = self.statesList.index(curr)
+        self.parent.setEvent(new_state)
 
 class PlotCanvas(FigureCanvasQTAgg):
     thetas = np.linspace(pi / 2, pi / 2 - 2 * pi, 1000, endpoint=False)
