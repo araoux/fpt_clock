@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import time
 
-class App(QMainWindow):
+class App(QWidget):
     def __init__(self, states):
         QMainWindow.__init__(self)
         self.title = 'FPT clock'
@@ -23,10 +23,12 @@ class App(QMainWindow):
         self.label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.label.setAlignment(Qt.AlignCenter)
 
-        self.initClock()
+        # Initialize the clock
+        self.m = PlotCanvas(self, width=5, height=4, period=self.states[self.state]['duration']*1000/1000)
 
-        self.vLayout = QVBoxLayout(self.m)  # TODO: fix windows size
-        self.vLayout.addWidget(self.label)  # TODO: fix positionning
+        self.vLayout = QVBoxLayout()
+        self.vLayout.addWidget(self.label)
+        self.vLayout.addWidget(self.m)
         self.setLayout(self.vLayout)
 
         self.childWindow = ClockControls(self)  # Clock controls
@@ -38,13 +40,6 @@ class App(QMainWindow):
         self.childWindow.show()
         self.show()
 
-    def initClock(self):
-        # The period is in milliseconds and we have 1000 points to plot.
-        # TODO: get more accurate time measuring
-        self.m = PlotCanvas(self, width=5, height=4,
-                            period=self.states[self.state]['duration']*1000/1000)
-        self.m.move(0, 0)
-
     def setEvent(self, i):
         if i <= len(self.states) - 1:
             self.state = i
@@ -52,14 +47,19 @@ class App(QMainWindow):
 
             # Delete the canvas and create a new one
             self.vLayout.removeWidget(self.m)
-            self.m = None
-            self.initClock()
+            self.m.close()
+            del(self.m)
+            self.m = PlotCanvas(self, width=5, height=4, period=self.states[self.state]['duration']*1000/1000)
             self.vLayout.addWidget(self.m)
+
+            # Start the animation
+            self.m.plot()
+            self.m.animate()
 
             # Change the label for the state name
             self.label.setText(self.states[self.state]['name'])
 
-            # Update the clock
+            # Update the list
             self.childWindow.list.setCurrentItem(self.childWindow.statesList[self.state])
 
             self.update()
@@ -111,9 +111,6 @@ class PlotCanvas(FigureCanvasQTAgg):
 
         self.count_loops = 0
         self.period = period
-
-        self.plot()
-        self.animate()
 
     def __del__(self):
         self.fig.clear()
