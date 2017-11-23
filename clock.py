@@ -8,11 +8,12 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+import math
 import time
 
 class App(QWidget):
     def __init__(self, states):
-        QMainWindow.__init__(self)
+        super().__init__()
         self.title = 'FPT clock'
         self.state = 0
         self.states = states
@@ -24,7 +25,8 @@ class App(QWidget):
         self.label.setAlignment(Qt.AlignCenter)
 
         # Initialize the clock
-        self.m = PlotCanvas(self, width=5, height=4, period=self.states[self.state]['duration']*1000/1000)
+        self.m = AnalogClock(self.states[self.state]['duration'], parent=self)
+        self.m.show()
 
         self.vLayout = QVBoxLayout()
         self.vLayout.addWidget(self.label)
@@ -37,24 +39,28 @@ class App(QWidget):
         # Start at first event
         self.setEvent(0)
 
-        self.childWindow.show()
-        self.show()
-
     def setEvent(self, i):
         if i <= len(self.states) - 1:
             self.state = i
             print('Stepping to state {}'.format(self.states[self.state]['name']))
 
             # Delete the canvas and create a new one
-            self.vLayout.removeWidget(self.m)
-            self.m.close()
-            del(self.m)
-            self.m = PlotCanvas(self, width=5, height=4, period=self.states[self.state]['duration']*1000/1000)
-            self.vLayout.addWidget(self.m)
+            #self.vLayout.removeWidget(self.m)
+            #try:
+            #    self.m.anim.stop()
+            #except AttributeError:
+            #    # The animation has not been defined yet
+            #    print('Cannont stop an unexisting animation')
+            #self.m.close()
+            #del(self.m)
+            #self.m = PlotCanvas(self, width=5, height=4, period=self.states[self.state]['duration']*1000/1000)
+            #self.vLayout.addWidget(self.m)
 
             # Start the animation
-            self.m.plot()
-            self.m.animate()
+            #self.m.plot()
+            #self.m.animate()
+
+            self.m.reset(self.states[self.state]['duration'])
 
             # Change the label for the state name
             self.label.setText(self.states[self.state]['name'])
@@ -70,9 +76,66 @@ class App(QWidget):
         if e.key() == Qt.Key_N:
             self.setEvent(self.state + 1)
 
+
+class AnalogClock(QWidget):
+
+    def __init__(self, duration, parent=None):
+        super().__init__(parent)
+
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.update)
+        self.timer.start(10)
+
+        self.elapsedTime = QElapsedTimer()
+        self.elapsedTime.start()
+
+        self.duration = duration
+
+        self.overtime = False
+
+        self.setMinimumSize(500,500)
+
+    def paintEvent(self, event):
+        side = min(self.width(), self.height())
+
+        # Create and start a QPainter
+        self.painter = QPainter()
+
+        self.painter.begin(self)
+        self.painter.setRenderHint(QPainter.Antialiasing)
+
+        self.painter.translate(self.width() / 2, self.height() / 2)  # Put the origin at the center
+
+        # Setup pen and brush
+        self.painter.setPen(Qt.NoPen)
+        self.painter.setBrush(QColor(0, 200, 0))
+
+        # Do the actual painting
+        self.painter.save()
+        currentAngle = - 2*math.pi*(self.elapsedTime.elapsed()/1000)/self.duration
+        if not(abs(currentAngle) > 2*math.pi):
+            self.painter.drawPie(-200, -200, 400, 400, 90*16, currentAngle*(360/(2*math.pi))*16)
+        elif 4*math.pi > abs(currentAngle) > 2*math.pi:
+            self.overtime = True
+            self.painter.drawPie(-200, -200, 400, 400, 90*16, 360*16)
+            self.painter.setBrush(QColor(200, 0, 0))
+            self.painter.drawPie(-200, -200, 400, 400, 90*16, (currentAngle + 2*math.pi)*(360/(2*math.pi))*16)
+        else:
+            self.painter.setBrush(QColor(200, 0, 0))
+            self.painter.drawPie(-200, -200, 400, 400, 90*16, 360*16)
+        self.painter.restore()
+
+        self.painter.end()
+
+    def reset(self, duration):
+        self.overtime = False
+        self.duration = duration
+        self.elapsedTime.restart()
+
+
 class ClockControls(QDialog):
     def __init__(self,parent,):
-        QMainWindow.__init__(self,parent)
+        QDialog.__init__(self,parent)
         self.title = 'FPT clock controls'
         self.state = 0
         self.setWindowTitle(self.title)
@@ -96,58 +159,6 @@ class ClockControls(QDialog):
         new_state = self.statesList.index(curr)
         self.parent.setEvent(new_state)
 
-class PlotCanvas(FigureCanvasQTAgg):
-    thetas = np.linspace(pi / 2, pi / 2 - 2 * pi, 1000, endpoint=False)
-
-    def __init__(self, parent=None, width=5, height=4, period=20, dpi=100):
-        self.fig = Figure(figsize=(width, height), dpi=dpi)
-        FigureCanvasQTAgg.__init__(self, self.fig)
-        self.setParent(parent)
-
-        FigureCanvasQTAgg.setSizePolicy(self,
-                                   QSizePolicy.Expanding,
-                                   QSizePolicy.Expanding)
-        FigureCanvasQTAgg.updateGeometry(self)
-
-        self.count_loops = 0
-        self.period = period
-
-    def __del__(self):
-        self.fig.clear()
-        plt.close(self.fig)
-
-    def plot(self):
-        self.ax = self.fig.add_subplot(111, polar=True)
-
-        self.ax.grid(False)
-        self.ax.set_rticks([])
-        self.ax.set_xticks([])
-        self.line, = self.ax.plot([pi / 2, pi / 2], [0, 1], color='black')
-        self.ax.fill_between(np.array([pi / 2]), np.array([1]), color='green')
-
-    def animate(self):
-        self.anim = animation.FuncAnimation(self.fig, self.animate_loop,
-                                            self.thetas, interval=self.period)
-        self.draw()
-
-    def animate_loop(self, th):
-        if th == self.thetas[1]:
-            self.count_loops += 1
-        self.line.set_data([th, th], [0, 1])  # update the data
-        ths = np.arange(pi / 2, th, -0.01)  # plot the current state
-        rs = np.array(ths.shape[0] * [1])
-
-        # Fill the clock
-        for coll in (self.ax.collections):
-            self.ax.collections.remove(coll)
-        if self.count_loops == 2:
-            self.ax.fill_between(self.thetas, np.array(self.thetas.shape[0] * [1]),
-                                 color='green')
-        elif self.count_loops > 2:
-            self.ax.fill_between(self.thetas, np.array(self.thetas.shape[0] * [1]),
-                                 color='red')
-        self.ax.fill_between(ths, rs,
-                             color='green' if self.count_loops <= 1 else 'red')
 
 if __name__ == '__main__':
     states = []
@@ -158,4 +169,6 @@ if __name__ == '__main__':
 
     app = QApplication(sys.argv)
     ex = App(states)
+    ex.show()
+    ex.childWindow.show()
     sys.exit(app.exec_())
