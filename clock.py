@@ -1,4 +1,5 @@
-import sys, csv
+import sys
+import csv
 from numpy import arange, sin, pi
 import numpy as np
 from PyQt5.QtWidgets import *
@@ -11,6 +12,7 @@ import matplotlib.animation as animation
 import math
 import time
 
+
 class App(QWidget):
     def __init__(self, states):
         super().__init__()
@@ -21,7 +23,6 @@ class App(QWidget):
         self.setWindowTitle(self.title)
 
         self.label = QLabel(self.states[self.state]['name'])
-        #self.label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.label.setAlignment(Qt.AlignCenter)
 
         # Initialize the clock
@@ -43,7 +44,8 @@ class App(QWidget):
     def setEvent(self, i):
         if i <= len(self.states) - 1:
             self.state = i
-            print('Stepping to state {}'.format(self.states[self.state]['name']))
+            print('Stepping to state {}'.format(
+                self.states[self.state]['name']))
 
             self.m.reset(self.states[self.state]['duration'])
 
@@ -51,7 +53,8 @@ class App(QWidget):
             self.label.setText(self.states[self.state]['name'])
 
             # Update the list
-            self.childWindow.list.setCurrentItem(self.childWindow.statesList[self.state])
+            self.childWindow.list.setCurrentItem(
+                self.childWindow.statesList[self.state])
 
             self.update()
         else:
@@ -78,10 +81,10 @@ class AnalogClock(QWidget):
 
         self.overtime = False
 
-        self.setMinimumSize(500,500)
+        self.setMinimumSize(500, 500)
 
     def paintEvent(self, event):
-        side = int(min(self.width(), self.height())*0.9/2)
+        side = int(min(self.width(), self.height()) * 0.9 / 2)
 
         # Create and start a QPainter
         self.painter = QPainter()
@@ -89,7 +92,8 @@ class AnalogClock(QWidget):
         self.painter.begin(self)
         self.painter.setRenderHint(QPainter.Antialiasing)
 
-        self.painter.translate(self.width() / 2, self.height() / 2)  # Put the origin at the center
+        # Put the origin at the center
+        self.painter.translate(self.width() / 2, self.height() / 2)
 
         # Setup pen and brush
         self.painter.setPen(Qt.NoPen)
@@ -97,21 +101,30 @@ class AnalogClock(QWidget):
 
         # Do the actual painting
         self.painter.save()
-        currentAngle = - 2*math.pi*(self.elapsedTime.elapsed()/1000)/self.duration
-        if not(abs(currentAngle) > 2*math.pi):
-            self.painter.drawPie(-side, -side, 2*side, 2*side, 90*16, currentAngle*(360/(2*math.pi))*16)
-        elif 4*math.pi > abs(currentAngle) > 2*math.pi:
+        currentAngle = - 2 * math.pi * \
+            (self.elapsedTime.elapsed() / 1000) / self.duration
+        if not(abs(currentAngle) > 2 * math.pi):
+            self.painter.drawPie(-side, -side, 2 * side, 2 * side, 90 * 16,
+                                 currentAngle * (360 / (2 * math.pi)) * 16)
+        elif 4 * math.pi > abs(currentAngle) > 2 * math.pi:
             self.overtime = True
-            self.painter.drawPie(-side, -side, 2*side, 2*side, 90*16, 360*16)
+            self.painter.drawPie(-side, -side, 2 * side,
+                                 2 * side, 90 * 16, 360 * 16)
             self.painter.setBrush(QColor(200, 0, 0))
-            self.painter.drawPie(-side, -side, 2*side, 2*side, 90*16, (currentAngle + 2*math.pi)*(360/(2*math.pi))*16)
+            self.painter.drawPie(-side, -side, 2 * side, 2 * side, 90 * 16,
+                                 (currentAngle + 2 * math.pi) *
+                                 (360 / (2 * math.pi)) * 16)
         else:
             self.painter.setBrush(QColor(200, 0, 0))
-            self.painter.drawPie(-side, -side, 2*side, 2*side, 90*16, 360*16)
+            self.painter.drawPie(-side, -side, 2 * side,
+                                 2 * side, 90 * 16, 360 * 16)
         self.painter.setPen(QColor(0, 0, 0))
         self.painter.setBrush(Qt.NoBrush)
-        self.painter.drawLine(QPoint(0,0), QPoint(-side*math.cos(math.pi/2 - currentAngle), -side*math.sin(math.pi/2 - currentAngle)))
-        self.painter.drawArc(-side, -side, 2*side, 2*side, 90*16, 360*16)
+        self.painter.drawLine(QPoint(0, 0), QPoint(
+            -side * math.cos(math.pi / 2 - currentAngle),
+            -side * math.sin(math.pi / 2 - currentAngle)))
+        self.painter.drawArc(-side, -side, 2 * side,
+                             2 * side, 90 * 16, 360 * 16)
         self.painter.restore()
 
         self.painter.end()
@@ -123,15 +136,15 @@ class AnalogClock(QWidget):
 
 
 class ClockControls(QDialog):
-    def __init__(self,parent,):
-        QDialog.__init__(self,parent)
+    def __init__(self, parent,):
+        QDialog.__init__(self, parent)
         self.title = 'FPT clock controls'
         self.state = 0
         self.setWindowTitle(self.title)
         self.parent = parent
 
         self.list = QListWidget()
-        self.vLayout=QVBoxLayout()
+        self.vLayout = QVBoxLayout()
         self.vLayout.addWidget(self.list)
         self.setLayout(self.vLayout)
 
@@ -140,7 +153,8 @@ class ClockControls(QDialog):
     def generateList(self, states):
         self.statesList = []
         for state in states:
-            item = QListWidgetItem('{} (duration : {} s)'.format(state['name'], state['duration']))
+            item = QListWidgetItem('{} (duration : {} s)'.format(
+                state['name'], state['duration']))
             self.statesList.append(item)
             self.list.addItem(item)
 
