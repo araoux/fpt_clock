@@ -21,11 +21,12 @@ class App(QWidget):
         self.setWindowTitle(self.title)
 
         self.label = QLabel(self.states[self.state]['name'])
-        self.label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        #self.label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.label.setAlignment(Qt.AlignCenter)
 
         # Initialize the clock
         self.m = AnalogClock(self.states[self.state]['duration'], parent=self)
+        self.m.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.m.show()
 
         self.vLayout = QVBoxLayout()
@@ -43,22 +44,6 @@ class App(QWidget):
         if i <= len(self.states) - 1:
             self.state = i
             print('Stepping to state {}'.format(self.states[self.state]['name']))
-
-            # Delete the canvas and create a new one
-            #self.vLayout.removeWidget(self.m)
-            #try:
-            #    self.m.anim.stop()
-            #except AttributeError:
-            #    # The animation has not been defined yet
-            #    print('Cannont stop an unexisting animation')
-            #self.m.close()
-            #del(self.m)
-            #self.m = PlotCanvas(self, width=5, height=4, period=self.states[self.state]['duration']*1000/1000)
-            #self.vLayout.addWidget(self.m)
-
-            # Start the animation
-            #self.m.plot()
-            #self.m.animate()
 
             self.m.reset(self.states[self.state]['duration'])
 
@@ -96,7 +81,7 @@ class AnalogClock(QWidget):
         self.setMinimumSize(500,500)
 
     def paintEvent(self, event):
-        side = min(self.width(), self.height())
+        side = int(min(self.width(), self.height())*0.9/2)
 
         # Create and start a QPainter
         self.painter = QPainter()
@@ -114,15 +99,19 @@ class AnalogClock(QWidget):
         self.painter.save()
         currentAngle = - 2*math.pi*(self.elapsedTime.elapsed()/1000)/self.duration
         if not(abs(currentAngle) > 2*math.pi):
-            self.painter.drawPie(-200, -200, 400, 400, 90*16, currentAngle*(360/(2*math.pi))*16)
+            self.painter.drawPie(-side, -side, 2*side, 2*side, 90*16, currentAngle*(360/(2*math.pi))*16)
         elif 4*math.pi > abs(currentAngle) > 2*math.pi:
             self.overtime = True
-            self.painter.drawPie(-200, -200, 400, 400, 90*16, 360*16)
+            self.painter.drawPie(-side, -side, 2*side, 2*side, 90*16, 360*16)
             self.painter.setBrush(QColor(200, 0, 0))
-            self.painter.drawPie(-200, -200, 400, 400, 90*16, (currentAngle + 2*math.pi)*(360/(2*math.pi))*16)
+            self.painter.drawPie(-side, -side, 2*side, 2*side, 90*16, (currentAngle + 2*math.pi)*(360/(2*math.pi))*16)
         else:
             self.painter.setBrush(QColor(200, 0, 0))
-            self.painter.drawPie(-200, -200, 400, 400, 90*16, 360*16)
+            self.painter.drawPie(-side, -side, 2*side, 2*side, 90*16, 360*16)
+        self.painter.setPen(QColor(0, 0, 0))
+        self.painter.setBrush(Qt.NoBrush)
+        self.painter.drawLine(QPoint(0,0), QPoint(-side*math.cos(math.pi/2 - currentAngle), -side*math.sin(math.pi/2 - currentAngle)))
+        self.painter.drawArc(-side, -side, 2*side, 2*side, 90*16, 360*16)
         self.painter.restore()
 
         self.painter.end()
