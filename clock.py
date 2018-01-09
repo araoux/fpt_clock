@@ -30,9 +30,12 @@ class App(QWidget):
         self.m.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.m.show()
 
+        self.countDown = QLabel()
+
         self.vLayout = QVBoxLayout()
         self.vLayout.addWidget(self.label)
         self.vLayout.addWidget(self.m)
+        self.vLayout.addWidget(self.countDown)
         self.setLayout(self.vLayout)
 
         self.childWindow = ClockControls(self)  # Clock controls
@@ -74,18 +77,22 @@ class AnalogClock(QWidget):
         self.timer.timeout.connect(self.update)
         self.timer.start(10)
 
+        self.elapsedTimeClock = datetime.timedelta()
         self.datestart = datetime.datetime.now()
 
         self.duration = duration
         self.paused = False
         self.overtime = False
 
+        self.parent = parent
+
         self.setMinimumSize(500, 500)
 
     def paintEvent(self, event):
         side = int(min(self.width(), self.height()) * 0.9 / 2)
         if not(self.paused):
-            self.elapsedTime = (datetime.datetime.now() - self.datestart).total_seconds()
+            self.elapsedTimeClock = (datetime.datetime.now() - self.datestart)
+            self.elapsedTime = self.elapsedTimeClock.total_seconds()
 
         # Create and start a QPainter
         self.painter = QPainter()
@@ -106,6 +113,8 @@ class AnalogClock(QWidget):
         if not(abs(currentAngle) > 2 * math.pi):
             self.painter.drawPie(-side, -side, 2 * side, 2 * side, 90 * 16,
                                  currentAngle * (360 / (2 * math.pi)) * 16)
+            self.parent.countDown.setText(
+                'Time remaining : ' + str(datetime.timedelta(seconds=self.duration) - self.elapsedTimeClock))
         elif 4 * math.pi > abs(currentAngle) > 2 * math.pi:
             self.overtime = True
             self.painter.drawPie(-side, -side, 2 * side,
