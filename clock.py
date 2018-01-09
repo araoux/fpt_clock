@@ -10,7 +10,7 @@ from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import math
-import time
+import time, datetime
 
 
 class App(QWidget):
@@ -74,17 +74,18 @@ class AnalogClock(QWidget):
         self.timer.timeout.connect(self.update)
         self.timer.start(10)
 
-        self.elapsedTime = QElapsedTimer()
-        self.elapsedTime.start()
+        self.datestart = datetime.datetime.now()
 
         self.duration = duration
-
+        self.paused = False
         self.overtime = False
 
         self.setMinimumSize(500, 500)
 
     def paintEvent(self, event):
         side = int(min(self.width(), self.height()) * 0.9 / 2)
+        if not(self.paused):
+            self.elapsedTime = (datetime.datetime.now() - self.datestart).total_seconds()
 
         # Create and start a QPainter
         self.painter = QPainter()
@@ -101,8 +102,7 @@ class AnalogClock(QWidget):
 
         # Do the actual painting
         self.painter.save()
-        currentAngle = - 2 * math.pi * \
-            (self.elapsedTime.elapsed() / 1000) / self.duration
+        currentAngle = - 2 * math.pi * self.elapsedTime / self.duration
         if not(abs(currentAngle) > 2 * math.pi):
             self.painter.drawPie(-side, -side, 2 * side, 2 * side, 90 * 16,
                                  currentAngle * (360 / (2 * math.pi)) * 16)
@@ -129,10 +129,19 @@ class AnalogClock(QWidget):
 
         self.painter.end()
 
+    def switchPause(self):
+        if self.paused:
+            self.paused = False
+            # Act as if there was no pause
+            self.datestart += (datetime.datetime.now() - self.startPause)
+        else:
+            self.paused = True
+            self.startPause = datetime.datetime.now()
+
     def reset(self, duration):
         self.overtime = False
         self.duration = duration
-        self.elapsedTime.restart()
+        self.datestart = datetime.datetime.now()
 
 
 class ClockControls(QDialog):
@@ -144,11 +153,15 @@ class ClockControls(QDialog):
         self.parent = parent
 
         self.list = QListWidget()
+        self.pauseButton = QPushButton()
+        self.pauseButton.setText('Pause')
         self.vLayout = QVBoxLayout()
         self.vLayout.addWidget(self.list)
+        self.vLayout.addWidget(self.pauseButton)
         self.setLayout(self.vLayout)
 
         self.list.currentItemChanged.connect(self.changeState)
+        self.pauseButton.clicked.connect(self.switchPause)
 
     def generateList(self, states):
         self.statesList = []
@@ -157,6 +170,13 @@ class ClockControls(QDialog):
                 state['name'], state['duration']))
             self.statesList.append(item)
             self.list.addItem(item)
+
+    def switchPause(self):
+        if self.parent.m.paused:
+            self.pauseButton.setText('Pause again')
+        else:
+            self.pauseButton.setText('Start again')
+        self.parent.m.switchPause()
 
     def changeState(self, curr):
         new_state = self.statesList.index(curr)
