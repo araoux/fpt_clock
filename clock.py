@@ -63,6 +63,10 @@ class App(QWidget):
         else:
             self.close()
 
+    def stepEvent(self):
+        i = self.state
+        self.setEvent(i+1)
+
     def keyPressEvent(self, e):
         if e.key() == Qt.Key_N:
             self.setEvent(self.state + 1)
@@ -76,12 +80,13 @@ class AnalogClock(QWidget):
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update)
         self.timer.start(10)
+        self.startPause = datetime.datetime.now()
 
         self.elapsedTimeClock = datetime.timedelta()
         self.datestart = datetime.datetime.now()
 
         self.duration = duration
-        self.paused = False
+        self.paused = True
         self.overtime = False
 
         self.parent = parent
@@ -92,7 +97,7 @@ class AnalogClock(QWidget):
         side = int(min(self.width(), self.height()) * 0.9 / 2)
         if not(self.paused):
             self.elapsedTimeClock = (datetime.datetime.now() - self.datestart)
-            self.elapsedTime = self.elapsedTimeClock.total_seconds()
+        self.elapsedTime = self.elapsedTimeClock.total_seconds()
 
         # Create and start a QPainter
         self.painter = QPainter()
@@ -152,6 +157,12 @@ class AnalogClock(QWidget):
         self.duration = duration
         self.datestart = datetime.datetime.now()
 
+        if self.paused:
+            self.startPause = datetime.datetime.now()
+
+        self.elapsedTimeClock = datetime.timedelta()
+        self.datestart = datetime.datetime.now()
+
 
 class ClockControls(QDialog):
     def __init__(self, parent,):
@@ -162,15 +173,19 @@ class ClockControls(QDialog):
         self.parent = parent
 
         self.list = QListWidget()
+        self.nextButton = QPushButton()
+        self.nextButton.setText('Next')
         self.pauseButton = QPushButton()
-        self.pauseButton.setText('Pause')
+        self.pauseButton.setText('Start')
         self.vLayout = QVBoxLayout()
         self.vLayout.addWidget(self.list)
+        self.vLayout.addWidget(self.nextButton)
         self.vLayout.addWidget(self.pauseButton)
         self.setLayout(self.vLayout)
 
         self.list.currentItemChanged.connect(self.changeState)
         self.pauseButton.clicked.connect(self.switchPause)
+        self.nextButton.clicked.connect(self.parent.stepEvent)
 
     def generateList(self, states):
         self.statesList = []
