@@ -30,6 +30,7 @@ class App(QWidget):
 
         self.label = QLabel(self.states[self.state]['name'])
         self.label.setAlignment(Qt.AlignCenter)
+        self.label.setFont(QFont('Arial', 28))
 
         # Initialize the clock
         self.m = AnalogClock(self.states[self.state]['duration'], parent=self)
@@ -37,6 +38,7 @@ class App(QWidget):
         self.m.show()
 
         self.countDown = QLabel()
+        self.countDown.setFont(QFont('Arial', 16))
 
         self.vLayout = QVBoxLayout()
         self.vLayout.addWidget(self.label)
