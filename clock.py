@@ -21,6 +21,10 @@ class App(QWidget):
         self.states = states
 
         self.setWindowTitle(self.title)
+        self.setAutoFillBackground(True)
+        p = self.palette()
+        p.setColor(self.backgroundRole(), QColor(255,255,255))
+        self.setPalette(p)
 
         self.label = QLabel(self.states[self.state]['name'])
         self.label.setAlignment(Qt.AlignCenter)
