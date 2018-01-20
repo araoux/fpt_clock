@@ -30,7 +30,7 @@ class App(QWidget):
 
         self.label = QLabel(self.states[self.state]['name'])
         self.label.setAlignment(Qt.AlignCenter)
-        self.label.setFont(QFont('Arial', 28))
+        self.label.setFont(QFont('Arial', self.frameGeometry().height()/25))
 
         # Initialize the clock
         self.m = AnalogClock(self.states[self.state]['duration'], parent=self)
@@ -38,7 +38,7 @@ class App(QWidget):
         self.m.show()
 
         self.countDown = QLabel()
-        self.countDown.setFont(QFont('Arial', 16))
+        self.countDown.setFont(QFont('Arial', self.frameGeometry().height()/35))
 
         self.vLayout = QVBoxLayout()
         self.vLayout.addWidget(self.label)
@@ -78,6 +78,10 @@ class App(QWidget):
     def keyPressEvent(self, e):
         if e.key() == Qt.Key_N:
             self.setEvent(self.state + 1)
+
+    def resizeEvent(self, event):
+        self.label.setFont(QFont('Arial', self.frameGeometry().height()/25))
+        self.countDown.setFont(QFont('Arial', self.frameGeometry().height()/35))
 
 
 class AnalogClock(QWidget):
