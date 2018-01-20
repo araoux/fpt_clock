@@ -12,8 +12,9 @@ import matplotlib.animation as animation
 import math
 import time, datetime
 
-def chop_microseconds(delta):
-    return delta - datetime.timedelta(microseconds=delta.microseconds)
+def printMinuteSecondDelta(delta):
+    s = delta.total_seconds()
+    return '{}:{}'.format(int(s % 3600) // 60, int(s % 60))
 
 class App(QWidget):
     def __init__(self, states):
@@ -131,7 +132,7 @@ class AnalogClock(QWidget):
             self.painter.drawPie(-side, -side, 2 * side, 2 * side, 90 * 16,
                                  currentAngle * (360 / (2 * math.pi)) * 16)
             self.parent.countDown.setText(
-                'Time remaining : ' + str(chop_microseconds(datetime.timedelta(seconds=self.duration) - self.elapsedTimeClock)))
+                'Time remaining : ' + printMinuteSecondDelta(datetime.timedelta(seconds=self.duration) - self.elapsedTimeClock))
         elif 4 * math.pi > abs(currentAngle) > 2 * math.pi:
             self.overtime = True
             self.painter.drawPie(-side, -side, 2 * side,
