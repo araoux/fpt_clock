@@ -16,6 +16,10 @@ def printMinuteSecondDelta(delta):
     s = delta.total_seconds()
     return '{}:{}'.format(int(s % 3600) // 60, int(s % 60))
 
+labelFontCoeff = 15
+countDownFontCoeff = 25
+
+
 class App(QWidget):
     def __init__(self, states):
         super().__init__()
@@ -31,7 +35,7 @@ class App(QWidget):
 
         self.label = QLabel(self.states[self.state]['name'])
         self.label.setAlignment(Qt.AlignCenter)
-        self.label.setFont(QFont('Arial', self.frameGeometry().height()/25))
+        self.label.setFont(QFont('Arial', self.frameGeometry().height()/labelFontCoeff))
 
         # Initialize the clock
         self.m = AnalogClock(self.states[self.state]['duration'], parent=self)
@@ -39,7 +43,7 @@ class App(QWidget):
         self.m.show()
 
         self.countDown = QLabel()
-        self.countDown.setFont(QFont('Arial', self.frameGeometry().height()/35))
+        self.countDown.setFont(QFont('Arial', self.frameGeometry().height()/countDownFontCoeff))
 
         self.vLayout = QVBoxLayout()
         self.vLayout.addWidget(self.label)
@@ -81,8 +85,8 @@ class App(QWidget):
             self.setEvent(self.state + 1)
 
     def resizeEvent(self, event):
-        self.label.setFont(QFont('Arial', self.frameGeometry().height()/25))
-        self.countDown.setFont(QFont('Arial', self.frameGeometry().height()/35))
+        self.label.setFont(QFont('Arial', self.frameGeometry().height()/labelFontCoeff))
+        self.countDown.setFont(QFont('Arial', self.frameGeometry().height()/countDownFontCoeff))
 
 
 class AnalogClock(QWidget):
@@ -107,7 +111,7 @@ class AnalogClock(QWidget):
         self.setMinimumSize(500, 500)
 
     def paintEvent(self, event):
-        side = int(min(self.width(), self.height()) * 0.9 / 2)
+        side = int(min(self.width(), self.height()) * 0.8 / 2)
         if not(self.paused):
             self.elapsedTimeClock = (datetime.datetime.now() - self.datestart)
         self.elapsedTime = self.elapsedTimeClock.total_seconds()
@@ -225,7 +229,7 @@ if __name__ == '__main__':
     with open('states.csv', newline='') as csvfile:
         reader = csv.reader(csvfile, delimiter=';', quotechar='|')
         for row in reader:
-            states.append({'name': row[0], 'duration': int(row[1])})
+            states.append({'name': row[0], 'duration': int(row[1])*60})
 
     app = QApplication(sys.argv)
     ex = App(states)
