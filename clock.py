@@ -5,6 +5,7 @@ import numpy as np
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
+from PyQt5.QtSvg import *
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
@@ -18,6 +19,29 @@ def printMinuteSecondDelta(delta):
 
 labelFontCoeff = 20
 countDownFontCoeff = 25
+
+class AspectRatioSvgWidget(QSvgWidget):
+    def paintEvent(self, paint_event):
+        painter = QPainter(self)
+        default_size = self.renderer().defaultSize()
+        default_width, default_height = default_size.width(), default_size.height()
+        widget_size = self.size()
+        widget_width, widget_height = widget_size.width(), widget_size.height()
+        ratio_x = widget_width / default_width
+        ratio_y = widget_height / default_height
+        if ratio_x < ratio_y:
+            new_width = widget_width
+            new_height = widget_width * default_height / default_width
+            new_left = 0
+            new_top = (widget_height - new_height) / 2
+        else:
+            new_width = widget_height * default_width / default_height
+            new_height = widget_height
+            new_left = (widget_width - new_width) / 2
+            new_top = 0
+        self.renderer().render(
+            painter,
+            QRectF(new_left, new_top, new_width, new_height))
 
 
 class App(QWidget):
@@ -33,6 +57,7 @@ class App(QWidget):
         p.setColor(self.backgroundRole(), QColor(255,255,255))
         self.setPalette(p)
 
+        # Title of the state
         self.label = QLabel()
         self.label.setText(self.states[self.state]['name'])
         self.label.setAlignment(Qt.AlignCenter)
@@ -43,13 +68,24 @@ class App(QWidget):
         self.m.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.m.show()
 
+        # Bottom layout
         self.countDown = QLabel()
         self.countDown.setFont(QFont('Arial', self.frameGeometry().height()/countDownFontCoeff))
+        self.bottomLayout = QHBoxLayout()
 
+
+        self.logoSFP = AspectRatioSvgWidget('SFP.svg')
+        self.logoFPT = AspectRatioSvgWidget('LOGO.svg')
+
+        self.bottomLayout.addWidget(self.logoSFP)
+        self.bottomLayout.addWidget(self.countDown)
+        self.bottomLayout.addWidget(self.logoFPT)
+
+        # Complete layout
         self.vLayout = QVBoxLayout()
         self.vLayout.addWidget(self.label)
         self.vLayout.addWidget(self.m)
-        self.vLayout.addWidget(self.countDown)
+        self.vLayout.addLayout(self.bottomLayout)
         self.setLayout(self.vLayout)
 
         self.childWindow = ClockControls(self)  # Clock controls
