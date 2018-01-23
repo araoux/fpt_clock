@@ -19,6 +19,7 @@ def printMinuteSecondDelta(delta):
 
 labelFontCoeff = 20
 countDownFontCoeff = 25
+logoSizeCoeff = 5
 
 class AspectRatioSvgWidget(QSvgWidget):
     def paintEvent(self, paint_event):
@@ -68,25 +69,30 @@ class App(QWidget):
         self.m.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.m.show()
 
-        # Bottom layout
+        # Right layout
         self.countDown = QLabel()
         self.countDown.setFont(QFont('Arial', self.frameGeometry().height()/countDownFontCoeff))
-        self.bottomLayout = QHBoxLayout()
+        self.rightLayout = QVBoxLayout()
 
+        self.rightLayout.addWidget(self.label)
+        self.rightLayout.addWidget(self.m)
+        self.rightLayout.addWidget(self.countDown)
 
+        # Left layout
+        self.leftLayout = QVBoxLayout()
         self.logoSFP = AspectRatioSvgWidget('SFP.svg')
         self.logoFPT = AspectRatioSvgWidget('LOGO.svg')
+        self.logoSFP.setMinimumWidth(self.frameGeometry().width()/logoSizeCoeff)
+        self.logoFPT.setMinimumWidth(self.frameGeometry().width()/logoSizeCoeff)
 
-        self.bottomLayout.addWidget(self.logoSFP)
-        self.bottomLayout.addWidget(self.countDown)
-        self.bottomLayout.addWidget(self.logoFPT)
+        self.leftLayout.addWidget(self.logoSFP)
+        self.leftLayout.addWidget(self.logoFPT)
 
         # Complete layout
-        self.vLayout = QVBoxLayout()
-        self.vLayout.addWidget(self.label)
-        self.vLayout.addWidget(self.m)
-        self.vLayout.addLayout(self.bottomLayout)
-        self.setLayout(self.vLayout)
+        self.fullLayout = QHBoxLayout()
+        self.fullLayout.addLayout(self.leftLayout)
+        self.fullLayout.addLayout(self.rightLayout)
+        self.setLayout(self.fullLayout)
 
         self.childWindow = ClockControls(self)  # Clock controls
         self.childWindow.generateList(states)
@@ -125,6 +131,8 @@ class App(QWidget):
         self.label.setFont(QFont('Arial', self.frameGeometry().height()/labelFontCoeff))
         self.countDown.setFont(QFont('Arial', self.frameGeometry().height()/countDownFontCoeff))
 
+        self.logoSFP.setMinimumWidth(self.frameGeometry().width()/logoSizeCoeff)
+        self.logoFPT.setMinimumWidth(self.frameGeometry().width()/logoSizeCoeff)
 
 class AnalogClock(QWidget):
 
