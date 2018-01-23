@@ -14,9 +14,9 @@ import time, datetime
 
 def printMinuteSecondDelta(delta):
     s = delta.total_seconds()
-    return '{}:{}'.format(int(s % 3600) // 60, int(s % 60))
+    return '{min:02d}:{sec:02d}'.format(min=int(s % 3600) // 60, sec=int(s % 60))
 
-labelFontCoeff = 15
+labelFontCoeff = 20
 countDownFontCoeff = 25
 
 
@@ -33,7 +33,8 @@ class App(QWidget):
         p.setColor(self.backgroundRole(), QColor(255,255,255))
         self.setPalette(p)
 
-        self.label = QLabel(self.states[self.state]['name'])
+        self.label = QLabel()
+        self.label.setText(self.states[self.state]['name'])
         self.label.setAlignment(Qt.AlignCenter)
         self.label.setFont(QFont('Arial', self.frameGeometry().height()/labelFontCoeff))
 
@@ -208,7 +209,7 @@ class ClockControls(QDialog):
         self.statesList = []
         for state in states:
             item = QListWidgetItem('{} (duration : {} s)'.format(
-                state['name'], state['duration']))
+                state['name'].replace('<br/>',''), state['duration']))
             self.statesList.append(item)
             self.list.addItem(item)
 
@@ -226,7 +227,7 @@ class ClockControls(QDialog):
 
 if __name__ == '__main__':
     states = []
-    with open('states.csv', newline='') as csvfile:
+    with open('states.csv', newline='', encoding='utf-8') as csvfile:
         reader = csv.reader(csvfile, delimiter=';', quotechar='|')
         for row in reader:
             states.append({'name': row[0], 'duration': int(row[1])*60})
