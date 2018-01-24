@@ -240,9 +240,6 @@
 </defs>
 <g id="surface1">
 <g style="fill:rgb(100%,100%,100%);fill-opacity:1;">
-  <use xlink:href="#glyph0-1" x="124.417" y="194.7318"/>
-  <use xlink:href="#glyph0-2" x="136.063198" y="194.7318"/>
-  <use xlink:href="#glyph0-3" x="161.659699" y="194.7318"/>
 </g>
 <path style=" stroke:none;fill-rule:nonzero;fill:rgb(50%,83.918762%,96.864319%);fill-opacity:1;" d="M 113.285156 228.269531 L 90.628906 142.21875 L 201.085938 69.027344 L 217.222656 152 C 218.375 204.441406 203.175781 212.09375 181.71875 242.652344 Z M 113.285156 228.269531 "/>
 <g clip-path="url(#clip1)" clip-rule="nonzero">
