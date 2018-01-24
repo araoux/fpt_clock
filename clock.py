@@ -1,15 +1,9 @@
-import sys
+import sys, os
 import csv
-from numpy import arange, sin, pi
-import numpy as np
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtSvg import *
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
-from matplotlib.figure import Figure
-import matplotlib.pyplot as plt
-import matplotlib.animation as animation
 import math
 import time, datetime
 
@@ -60,12 +54,19 @@ class App(QWidget):
         self.logoSFP = QLabel()
         self.logoFPT = QLabel()
 
-        self.pixmapSFP = QPixmap('SFP.png')
+        if hasattr(sys, "_MEIPASS"):  # For PyInstaller
+            SFPFile = os.path.join(sys._MEIPASS, 'SFP.png')
+            FPTFile = os.path.join(sys._MEIPASS, 'LOGO.png')
+        else:
+            SFPFile = 'SFP.png'
+            FPTFile = 'LOGO.png'
+
+        self.pixmapSFP = QPixmap(SFPFile)
         self.logoSFP.setPixmap(self.pixmapSFP)
         self.logoSFP.setMinimumSize(1, 1)
         self.logoSFP.installEventFilter(self)
 
-        self.pixmapFPT = QPixmap('LOGO.png')
+        self.pixmapFPT = QPixmap(FPTFile)
         self.logoFPT.setPixmap(self.pixmapSFP)
         self.logoFPT.setMinimumSize(1, 1)
         self.logoFPT.installEventFilter(self)
@@ -272,8 +273,13 @@ class ClockControls(QDialog):
 
 
 if __name__ == '__main__':
+    if hasattr(sys, "_MEIPASS"):  # For PyInstaller
+        statesFile = os.path.join(sys._MEIPASS, 'states.csv')
+    else:
+        statesFile = 'states.csv'
+
     states = []
-    with open('states.csv', newline='', encoding='utf-8') as csvfile:
+    with open(statesFile, newline='', encoding='utf-8') as csvfile:
         reader = csv.reader(csvfile, delimiter=';', quotechar='|')
         for row in reader:
             states.append({'name': row[0], 'duration': int(row[1])*60})
