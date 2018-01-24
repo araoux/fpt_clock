@@ -21,29 +21,6 @@ labelFontCoeff = 20
 countDownFontCoeff = 25
 logoSizeCoeff = 5
 
-class AspectRatioSvgWidget(QSvgWidget):
-    def paintEvent(self, paint_event):
-        painter = QPainter(self)
-        default_size = self.renderer().defaultSize()
-        default_width, default_height = default_size.width(), default_size.height()
-        widget_size = self.size()
-        widget_width, widget_height = widget_size.width(), widget_size.height()
-        ratio_x = widget_width / default_width
-        ratio_y = widget_height / default_height
-        if ratio_x < ratio_y:
-            new_width = widget_width
-            new_height = widget_width * default_height / default_width
-            new_left = 0
-            new_top = (widget_height - new_height) / 2
-        else:
-            new_width = widget_height * default_width / default_height
-            new_height = widget_height
-            new_left = (widget_width - new_width) / 2
-            new_top = 0
-        self.renderer().render(
-            painter,
-            QRectF(new_left, new_top, new_width, new_height))
-
 
 class App(QWidget):
     def __init__(self, states):
@@ -80,8 +57,19 @@ class App(QWidget):
 
         # Left layout
         self.leftLayout = QVBoxLayout()
-        self.logoSFP = AspectRatioSvgWidget('SFP.svg')
-        self.logoFPT = AspectRatioSvgWidget('LOGO.svg')
+        self.logoSFP = QLabel()
+        self.logoFPT = QLabel()
+
+        self.pixmapSFP = QPixmap('SFP.png')
+        self.logoSFP.setPixmap(self.pixmapSFP)
+        self.logoSFP.setMinimumSize(1, 1)
+        self.logoSFP.installEventFilter(self)
+
+        self.pixmapFPT = QPixmap('LOGO.png')
+        self.logoFPT.setPixmap(self.pixmapSFP)
+        self.logoFPT.setMinimumSize(1, 1)
+        self.logoFPT.installEventFilter(self)
+
         self.logoSFP.setMinimumWidth(self.frameGeometry().width()/logoSizeCoeff)
         self.logoFPT.setMinimumWidth(self.frameGeometry().width()/logoSizeCoeff)
 
@@ -99,6 +87,20 @@ class App(QWidget):
 
         # Start at first event
         self.setEvent(0)
+
+    def eventFilter(self, source, event):
+        if (source is self.logoSFP and event.type() == QEvent.Resize):
+            # re-scale the pixmap when the label resizes
+            self.logoSFP.setPixmap(self.pixmapSFP.scaled(
+                self.logoSFP.size(), Qt.KeepAspectRatio,
+                Qt.SmoothTransformation))
+        if (source is self.logoFPT and event.type() == QEvent.Resize):
+            # re-scale the pixmap when the label resizes
+            self.logoFPT.setPixmap(self.pixmapFPT.scaled(
+                self.logoFPT.size(), Qt.KeepAspectRatio,
+                Qt.SmoothTransformation))
+        return super(QWidget, self).eventFilter(source, event)
+
 
     def setEvent(self, i):
         if i <= len(self.states) - 1:
