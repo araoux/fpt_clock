@@ -228,6 +228,9 @@ class AnalogClock(QWidget):
         self.elapsedTimeClock = datetime.timedelta()
         self.datestart = datetime.datetime.now()
 
+    def addMinute(self):
+        self.duration += 60
+
 
 class ClockControls(QDialog):
     def __init__(self, parent,):
@@ -242,15 +245,19 @@ class ClockControls(QDialog):
         self.nextButton.setText('Next')
         self.pauseButton = QPushButton()
         self.pauseButton.setText('Start')
+        self.moreTime = QPushButton()
+        self.moreTime.setText('Add 1 minute')
         self.vLayout = QVBoxLayout()
         self.vLayout.addWidget(self.list)
         self.vLayout.addWidget(self.nextButton)
         self.vLayout.addWidget(self.pauseButton)
+        self.vLayout.addWidget(self.moreTime)
         self.setLayout(self.vLayout)
 
         self.list.currentItemChanged.connect(self.changeState)
         self.pauseButton.clicked.connect(self.switchPause)
         self.nextButton.clicked.connect(self.parent.stepEvent)
+        self.moreTime.clicked.connect(self.parent.m.addMinute)
 
     def generateList(self, states):
         self.statesList = []
