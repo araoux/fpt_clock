@@ -11,8 +11,8 @@ def printMinuteSecondDelta(delta):
     s = delta.total_seconds()
     return '{min:02d}:{sec:02d}'.format(min=int(s % 3600) // 60, sec=int(s % 60))
 
-labelFontCoeff = 20
-countDownFontCoeff = 25
+labelFontCoeff = 15
+countDownFontCoeff = 20
 logoSizeCoeff = 5
 
 
